@@ -1,0 +1,12 @@
+services:
+  name:
+    build: ./name
+    container_name: name
+    ports:
+      - "hostPort:containerPort"
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
