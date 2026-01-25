@@ -1,6 +1,11 @@
 # ☁️ CloudCore
 **CloudCore** is a lightweight, multi-cloud monitoring solution designed to provide real-time visibility into **AWS** and **GCP** infrastructures. It aggregates resource metrics and visualizes them through interactive, user-defined dashboards.
 
+## Key Features
+
+- **Unified Monitoring:** Support for both Amazon Web Services (AWS) and Google Cloud Platform (GCP).
+- **Modular Architecture:** Independent data collectors for each cloud provider, making the system easy to scale and extend.
+- **Container-First:** Fully dockerized environment for seamless deployment and local development.
 
 ## Tech Stack
 
@@ -9,12 +14,6 @@
 - **Database:** PostgreSQL
 - **Orchestration:** Docker / Docker Compose
 - **Cloud SDKs:** AWS Boto3 / GCP Python SDK
-
-## Key Features
-
-- **Unified Monitoring:** Support for both Amazon Web Services (AWS) and Google Cloud Platform (GCP).
-- **Modular Architecture:** Independent data collectors for each cloud provider, making the system easy to scale and extend.
-- **Container-First:** Fully dockerized environment for seamless deployment and local development.
 
 <!-- ## Database Schema
 
@@ -51,11 +50,10 @@ docker-compose up --build
 
 The dashboard will be available at http://localhost:5173. -->
 
-## Author
+## Author & License
 * **Mikanovich Vadzim** - Student UMG **ID:** 51720.
 * **Vadosmik** - [GitHub Profile](https://github.com/Vadosmik)
 
-## License
 This project is for educational purposes only.
 
 ## Links
