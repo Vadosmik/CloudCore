@@ -8,10 +8,33 @@ services:
       - ./cors.conf:/etc/nginx/cors.conf:ro
     ports:
       - "80:80"
-    networks:
-      - cloud-core-net
+    networks: [cloud-core-net]
     depends_on:
       - core-service
+
+  # === collectors ===
+  aws-collector:
+    build: ./collectors/aws
+    container_name: aws-collector
+    restart: unless-stopped
+    environment:
+      CORE_API_URL: http://core-service:8080
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      # DISCOVERY_INTERVAL: ${AWS_DISCOVERY_INTERVAL:-5}
+      # METRICS_INTERVAL: ${AWS_METRICS_INTERVAL:-5}
+    depends_on:
+      - core-service
+    networks: [cloud-core-internal]
+
+  # gcp-collector:
+  #   build: ./collectors/gcp
+  #   container_name: gcp-collector
+  #   restart: unless-stopped
+  #   environment:
+  #     INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+  #   networks: [cloud-core-internal]
+
+  # === cloude core service ===
   core-service:
     build:
       context: ./core-service
@@ -20,24 +43,20 @@ services:
     volumes:
       - ./core-service:/app
     environment:
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
 
-      JWT_SECRET: ${jwt_secret}
+      JWT_SECRET: ${JWT_SECRET}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
-
-      AWS_COLLECTOR_URL: http://aws-collector:8080
-      GCP_COLLECTOR_URL: http://gcp-collector:8080
-    ports:
-      - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - cloud-core-net
+    networks: [cloud-core-net, cloud-core-internal]
 
   db:
     image: postgres:16-alpine
@@ -58,10 +77,10 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    networks:
-      - cloud-core-net
+    networks: [cloud-core-net]
 
 networks:
+  cloud-core-internal:
   cloud-core-net:
     driver: bridge
 
