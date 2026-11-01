@@ -1,0 +1,32 @@
+.connection-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.connection-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+}
+
+.connection-item:hover {
+  background: rgba(128, 128, 128, 0.05);
+  transition: background 0.2s ease-in-out;
+}
+
+.connection-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.connection-provider {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--hover-bg);
+  color: var(--text-muted);
+}

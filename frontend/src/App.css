@@ -1,0 +1,25 @@
+.main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 5px;
+}
+
+.section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #4b5563;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.section-title.lg {
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}

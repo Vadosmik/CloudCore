@@ -1,0 +1,43 @@
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+
+  color: #4b5563;
+  font-size: 1.15rem;
+  padding: 6px;
+  border-radius: 6px;
+
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.btn:hover {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.btn:active {
+  transform: scale(0.9);
+}
+
+.btn svg {
+  transition: transform 0.2s ease;
+}
+
+.btn.primary {
+  background-color: #1e5ee0;
+  color: #d7dbe4;
+}
+
+.btn.primary:hover {
+  background-color: #1648ac;
+  color: #c5c9d2;
+}
