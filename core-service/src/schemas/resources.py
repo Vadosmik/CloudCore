@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Literal, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 ResourceType = Literal["COMPUTE", "DATABASE", "STORAGE", "NETWORK", "OTHER"]
@@ -8,28 +8,27 @@ ResourceStatus = Literal["RUNNING", "STOPPED", "TERMINATED", "UNKNOWN"]
 
 
 class ResourceBase(BaseModel):
-    name: str
-    resource_type: ResourceType = "OTHER"
-    provider_type: str  # np. "aws:ec2", "gcp:cloud_sql", "aws:lambda"
-    provider_resource_id: str  # ARN z AWS lub ID z GCP
-    region: Optional[str] = None  # np. "us-east-1", "europe-west1"
+  external_id: str = Field(max_length=255)  # np. "i-0123456789" (AWS) / instance-id (GCP)
+  name: str = Field(max_length=100)
+  resource_type: ResourceType = "OTHER"
+  provider_type: str = Field(max_length=50)  # np. "aws:ec2", "gcp:cloud_sql", "aws:lambda"
+  region: Optional[str] = Field(default=None, max_length=50)  # np. "us-east-1", "europe-west1"
+  status: ResourceStatus = "UNKNOWN"
 
-    model_config = ConfigDict(from_attributes=True)
+  model_config = ConfigDict(from_attributes=True)
 
 
 class ResourceSyncItem(ResourceBase):
-    status: ResourceStatus = "RUNNING"
-    metadata_json: Optional[dict] = None
+  pass
 
 
 class ResourceBatchSync(BaseModel):
-    connection_id: int
-    resources: list[ResourceSyncItem]
+  connection_id: int
+  resources: list[ResourceSyncItem]
 
 
 class ResourceRead(ResourceBase):
-    id: int
-    connection_id: int
-    status: ResourceStatus
-    last_seen_at: datetime
-    created_at: datetime
+  id: int
+  connection_id: int
+  last_seen_at: datetime
+  created_at: datetime
