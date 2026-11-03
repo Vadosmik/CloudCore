@@ -1,8 +1,9 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
 import logging
+from os import name
 
-from src.aws_client import AwsClient
+from src.aws_client import EC2_METRICS, AwsClient
 from src.config import settings
 from src.core_api import get_connections, sync_resources, ensure_metric, push_points
 
@@ -19,10 +20,11 @@ async def collect(conn):
   end = datetime.now(timezone.utc)
   start = end - timedelta(minutes=settings.metrics_lookback_minutes)
   for r in synced:
-    metric = await ensure_metric(r["id"], "CPUUtilization", "Percent")
-    points = await asyncio.to_thread(cloud.get_cpu, r["external_id"], start, end)
-    result = await push_points(metric["id"], points)
-    logging.info("%s CPU: %s", r["external_id"], result)
+    for name, (unit, stat) in EC2_METRICS.items():
+      metric = await ensure_metric(r["id"], name, unit)
+      points = await asyncio.to_thread(cloud.get_metric, r["external_id"], name, start, end, stat)
+      result = await push_points(metric["id"], points)
+      logging.info("%s %s: %s", r["external_id"], name, result)
 
 
 async def main():

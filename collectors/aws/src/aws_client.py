@@ -11,6 +11,17 @@ EC2_STATUS = {
   "terminated": "TERMINATED",
 }
 
+EC2_METRICS = {
+  "CPUUtilization": ("Percent", "Average"),
+  "NetworkIn": ("Bytes", "Sum"),
+  "NetworkOut": ("Bytes", "Sum"),
+  "EBSReadBytes": ("Bytes", "Sum"),
+  "EBSWriteBytes": ("Bytes", "Sum"),
+  "EBSReadOps": ("Count", "Sum"),
+  "EBSWriteOps": ("Count", "Sum"),
+  "StatusCheckFailed": ("Count", "Maximum"),
+}
+
 
 class AwsClient:
   def __init__(self, credentials: str):
@@ -33,23 +44,23 @@ class AwsClient:
           instances.append(self._normalize_instance(instance))
     return instances
 
-  def get_cpu(self, instance_id: str, start: datetime, end: datetime) -> list[dict[str, Any]]:
+  def get_metric(self, instance_id: str, metric_name: str, start: datetime, end: datetime, statistic: str = "Average") -> list[dict[str, Any]]:
     response = self.cloudwatch.get_metric_statistics(
       Namespace="AWS/EC2",
-      MetricName="CPUUtilization",
+      MetricName=metric_name,
       Dimensions=[{"Name": "InstanceId", "Value": instance_id}],
       StartTime=start,
       EndTime=end,
       Period=300,
-      Statistics=["Average"],
+      Statistics=[statistic],
     )
     datapoints = sorted(response["Datapoints"], key=lambda point: point["Timestamp"])
     return [
-      {"timestamp": point["Timestamp"], "value": point["Average"]}
+      {"timestamp": point["Timestamp"], "value": point[statistic]}
       for point in datapoints
     ]
 
-  # === nowszy metod ale zawsze płatny  ---  ok. $0.01 za 1000 pobranych metryk ===
+  # === nowszy metod(get_metric_data) ale zawsze płatny  ---  ok. $0.01 za 1000 pobranych metryk ===
   # def get_cpu(self, instance_id: str, start: datetime, end: datetime) -> list[dict[str, Any]]:
   #   response = self.cloudwatch.get_metric_data(
   #     MetricDataQueries=[{
