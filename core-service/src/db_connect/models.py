@@ -84,6 +84,11 @@ class Chart(Base):
 
   id: Mapped[int] = mapped_column(primary_key=True, index=True)
   dashboard_id: Mapped[int] = mapped_column(ForeignKey("dashboards.id", ondelete="CASCADE"))
+
+  pos_x: Mapped[int] = mapped_column(default=0)
+  pos_y: Mapped[int] = mapped_column(default=0)
+  width: Mapped[int] = mapped_column(default=6)
+  height: Mapped[int] = mapped_column(default=4)
   
   title: Mapped[str] = mapped_column(String(100))
   chart_type: Mapped[str] = mapped_column(String(30))  # np. 'line', 'bar', 'gauge'

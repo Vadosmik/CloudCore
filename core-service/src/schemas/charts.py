@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Literal, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from schemas.metrics import MetricDefinitionRead
 
@@ -25,8 +25,22 @@ class ChartUpdate(BaseModel):
   metric_ids: Optional[list[int]] = None
 
 
+class ChartLayoutItem(BaseModel):
+  chart_id: int
+  pos_x: int = Field(ge=0)
+  pos_y: int = Field(ge=0)
+  width: int = Field(ge=1, le=12)
+  height: int = Field(ge=1)
+
+
 class ChartRead(ChartBase):
   id: int
   dashboard_id: int
+
+  pos_x: int
+  pos_y: int
+  width: int
+  height: int
+
   created_at: datetime
   metrics: list[MetricDefinitionRead] = []

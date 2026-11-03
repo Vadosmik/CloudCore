@@ -3,7 +3,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from db_connect.database import SessionDep
-from db_connect.models import Dashboard
+from db_connect.models import Chart, Dashboard
+from schemas.charts import ChartLayoutItem
 from schemas.dashboards import (
   DashboardCreate,
   DashboardListItem,
@@ -76,6 +77,26 @@ async def update_dashboard(dashboard_id: int, dashboard_in: DashboardUpdate, db:
   await db.refresh(dashboard)
 
   return dashboard
+
+
+@router.put("/{dashboard_id}/layout", status_code=status.HTTP_204_NO_CONTENT)
+async def update_dashboard_layout(dashboard_id: int, layout_in: list[ChartLayoutItem], db: SessionDep):
+  query = select(Chart).where(Chart.dashboard_id == dashboard_id)
+  charts = {chart.id: chart for chart in (await db.execute(query)).scalars().all()}
+
+  for item in layout_in:
+    chart = charts.get(item.chart_id)
+    if not chart:
+      raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Chart with ID {item.chart_id} not found in dashboard {dashboard_id}",
+      )
+    chart.pos_x = item.pos_x
+    chart.pos_y = item.pos_y
+    chart.width = item.width
+    chart.height = item.height
+
+  await db.commit()
 
 
 @router.delete("/{dashboard_id}", status_code=status.HTTP_204_NO_CONTENT)
