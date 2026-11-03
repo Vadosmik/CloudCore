@@ -109,3 +109,16 @@ select.input-field__control {
   border-color: #1e5ee0;
   color: #fff;
 }
+
+.chip__control:disabled + .chip__label {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chip:has(:disabled) {
+  cursor: not-allowed;
+}
+
+.chip:has(:disabled):hover .chip__label {
+  border-color: #e3e3e3;
+}

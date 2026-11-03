@@ -60,10 +60,20 @@ export default function ChartFormModal({ close, params, onChanged }: ModalConten
       .catch((error) => console.error("Error loading metrics:", error));
   }, [resourceId]);
 
-  const toggleMetric = (id: number) => {
-    setMetricIds((prev) =>
-      prev.includes(id) ? prev.filter((metricId) => metricId !== id) : [...prev, id],
-    );
+  const selectedMetrics = metrics.filter((m) => metricIds.includes(m.id));
+  const currentUnitType = selectedMetrics[0]?.unit;
+
+  const toggleMetric = (metric: MetricDefinition) => {
+    const isSelected = metricIds.includes(metric.id);
+
+    if (isSelected) {
+      setMetricIds((prev) => prev.filter((id) => id !== metric.id));
+    } else {
+      if (currentUnitType && metric.unit !== currentUnitType) {
+        return;
+      }
+      setMetricIds((prev) => [...prev, metric.id]);
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -160,13 +170,19 @@ export default function ChartFormModal({ close, params, onChanged }: ModalConten
           <p>No metrics for this resource yet.</p>
         ) : (
           <div className="chip-group">
-            {metrics.map((metric) => (
-              <Checkbox
-                label={`${metric.name} (${metric.unit})`}
-                checked={metricIds.includes(metric.id)}
-                onChange={() => toggleMetric(metric.id)}
-              />
-            ))}
+            {metrics.map((metric) => {
+              const isDisabled = Boolean(currentUnitType && metric.unit !== currentUnitType);
+
+              return (
+                <Checkbox
+                  key={metric.id}
+                  label={`${metric.name} (${metric.unit})`}
+                  checked={metricIds.includes(metric.id)}
+                  disabled={isDisabled}
+                  onChange={() => toggleMetric(metric)}
+                />
+              );
+            })}
           </div>
         ))}
 

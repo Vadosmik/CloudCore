@@ -26,6 +26,18 @@ export const TIME_RANGE_MS: Record<TimeRange, number> = {
   "30d": 30 * 24 * 60 * 60_000,
 };
 
+export function formatBytes(bytes: number): string {
+  if (bytes === 0) return "0 B";
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.min(Math.max(Math.floor(Math.log(bytes) / Math.log(1024)), 0), sizes.length - 1);
+  return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
+}
+
+export function formatMetric(value: number, unit: string): string {
+  if (unit === "Bytes") return formatBytes(value);
+  return `${formatValue(value)}${unitSymbol(unit)}`;
+}
+
 export function formatValue(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(3);
 }

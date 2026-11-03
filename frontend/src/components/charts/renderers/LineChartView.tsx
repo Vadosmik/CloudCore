@@ -2,7 +2,7 @@ import ReactECharts from "echarts-for-react";
 import type { EChartsOption, LineSeriesOption } from "echarts";
 import type { Chart } from "../../../types/charts";
 import type { MetricDataPoint } from "../../../types/metrics";
-import { CHART_COLORS, formatValue, unitSymbol } from "../chartTheme";
+import { CHART_COLORS, formatBytes, formatMetric } from "../chartTheme";
 
 export default function LineChartView({
   chart,
@@ -17,6 +17,7 @@ export default function LineChartView({
   const units = [...new Set(metrics.map((m) => m.unit))];
   const singleUnit = units.length === 1 ? units[0] : null;
   const isPercent = singleUnit === "Percent";
+  const isBytes = singleUnit === "Bytes";
 
   const option: EChartsOption = {
     color: CHART_COLORS,
@@ -36,13 +37,13 @@ export default function LineChartView({
       max: isPercent
         ? (value) => Math.min(100, Math.max(10, Math.ceil(value.max * 1.1)))
         : undefined,
-      name: !isPercent && singleUnit ? singleUnit : undefined,
-      axisLabel: { formatter: isPercent ? "{value}%" : "{value}" },
+      name: !isPercent && !isBytes && singleUnit ? singleUnit : undefined,
+      axisLabel: {
+        formatter: isPercent ? "{value}%" : isBytes ? (v: number) => formatBytes(v) : "{value}",
+      },
       splitLine: { lineStyle: { type: [8, 6], color: "#e5e7eb" } },
     },
-    dataZoom: [
-      { type: "inside", filterMode: "none", zoomOnMouseWheel: "ctrl" },
-    ],
+    dataZoom: [{ type: "inside", filterMode: "none", zoomOnMouseWheel: "ctrl" }],
     series: metrics.map(
       (metric): LineSeriesOption => ({
         name: metric.name,
@@ -52,8 +53,7 @@ export default function LineChartView({
         areaStyle: multi ? undefined : { opacity: 0.08 },
         emphasis: { focus: "series" },
         tooltip: {
-          valueFormatter: (v) =>
-            `${formatValue(Number(v))}${unitSymbol(metric.unit)}`,
+          valueFormatter: (v) => formatMetric(Number(v), metric.unit),
         },
         data: series
           .filter((point) => point.metric_definition_id === metric.id)

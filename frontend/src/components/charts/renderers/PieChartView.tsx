@@ -2,7 +2,7 @@ import ReactECharts from "echarts-for-react";
 import type { DefaultLabelFormatterCallbackParams, EChartsOption } from "echarts";
 import type { Chart } from "../../../types/charts";
 import type { MetricDataPoint } from "../../../types/metrics";
-import { CHART_COLORS, formatValue, unitSymbol } from "../chartTheme";
+import { CHART_COLORS, formatMetric } from "../chartTheme";
 
 interface PieItem {
   name: string;
@@ -19,16 +19,14 @@ export default function PieChartView({
 }) {
   // backend zwraca punkty rosnąco po czasie -> ostatni = najnowszy
   const pieData: PieItem[] = chart.metrics.flatMap((metric) => {
-    const latest = series
-      .filter((point) => point.metric_definition_id === metric.id)
-      .at(-1);
+    const latest = series.filter((point) => point.metric_definition_id === metric.id).at(-1);
 
     return latest ? [{ name: metric.name, value: latest.value, unit: metric.unit }] : [];
   });
 
   const formatItem = (params: DefaultLabelFormatterCallbackParams) => {
     const item = params.data as PieItem;
-    return `${formatValue(item.value)}${unitSymbol(item.unit)}`;
+    return formatMetric(item.value, item.unit);
   };
 
   const option: EChartsOption = {
