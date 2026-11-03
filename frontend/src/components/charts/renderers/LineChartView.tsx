@@ -2,7 +2,7 @@ import ReactECharts from "echarts-for-react";
 import type { EChartsOption, LineSeriesOption } from "echarts";
 import type { Chart } from "../../../types/charts";
 import type { MetricDataPoint } from "../../../types/metrics";
-import { CHART_COLORS, unitSymbol } from "../chartTheme";
+import { CHART_COLORS, formatValue, unitSymbol } from "../chartTheme";
 
 export default function LineChartView({
   chart,
@@ -33,7 +33,9 @@ export default function LineChartView({
     yAxis: {
       type: "value",
       min: isPercent ? 0 : undefined,
-      max: isPercent ? 100 : undefined,
+      max: isPercent
+        ? (value) => Math.min(100, Math.max(10, Math.ceil(value.max * 1.1)))
+        : undefined,
       name: !isPercent && singleUnit ? singleUnit : undefined,
       axisLabel: { formatter: isPercent ? "{value}%" : "{value}" },
       splitLine: { lineStyle: { type: [8, 6], color: "#e5e7eb" } },
@@ -49,7 +51,10 @@ export default function LineChartView({
         lineStyle: { width: 2 },
         areaStyle: multi ? undefined : { opacity: 0.08 },
         emphasis: { focus: "series" },
-        tooltip: { valueFormatter: (v) => `${v}${unitSymbol(metric.unit)}` },
+        tooltip: {
+          valueFormatter: (v) =>
+            `${formatValue(Number(v))}${unitSymbol(metric.unit)}`,
+        },
         data: series
           .filter((point) => point.metric_definition_id === metric.id)
           .map((point) => [point.timestamp, point.value]),
@@ -57,5 +62,5 @@ export default function LineChartView({
     ),
   };
 
-  return <ReactECharts option={option} style={{ height: 300 }} />;
+  return <ReactECharts option={option} notMerge style={{ height: "100%" }} />;
 }

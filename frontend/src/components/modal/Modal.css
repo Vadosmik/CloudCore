@@ -39,3 +39,15 @@
   margin-top: 10px;
   gap: 10px;
 }
+
+.modal-actions .btn.danger {
+  width: 125px;
+  margin-right: auto;
+}
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 16px;
+}

@@ -12,17 +12,18 @@ export default function Sidebar({ refreshKey }: { refreshKey: number }) {
   const [dashboards, setDashboards] = useState<DashboardListItem[]>([]);
   const { open } = useHashModal();
 
-  const loadDashboards = async () => {
-    try {
-      const fetched = await getDashboards();
-      setDashboards(fetched);
-    } catch (error) {
-      console.error("Error loading dashboards:", error);
-    }
-  };
-
   useEffect(() => {
-    loadDashboards();
+    let ignore = false;
+
+    getDashboards()
+      .then((fetched) => {
+        if (!ignore) setDashboards(fetched);
+      })
+      .catch((error) => console.error("Error loading dashboards:", error));
+
+    return () => {
+      ignore = true;
+    };
   }, [refreshKey]);
 
   // const handleOpenSettings = () => {

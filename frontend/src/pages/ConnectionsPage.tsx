@@ -16,21 +16,22 @@ interface ConnectionsProps {
   refresh: () => void;
 }
 
-export default function Connections({ version }: ConnectionsProps) {
-  // refresh
+export default function Connections({ version, refresh }: ConnectionsProps) {
   const { open } = useHashModal();
   const [connections, setConnections] = useState<Connection[]>([]);
 
-  const loadConnections = async () => {
-    try {
-      setConnections(await getConnections());
-    } catch (err) {
-      console.error("Error loading connections:", err);
-    }
-  };
-
   useEffect(() => {
-    loadConnections();
+    let ignore = false;
+
+    getConnections()
+      .then((fetched) => {
+        if (!ignore) setConnections(fetched);
+      })
+      .catch((error) => console.error("Error loading connections:", error));
+
+    return () => {
+      ignore = true;
+    };
   }, [version]);
 
   const handleDelete = async (connection: Connection) => {
@@ -43,7 +44,7 @@ export default function Connections({ version }: ConnectionsProps) {
 
     try {
       await deleteConnections(connection.id);
-      await loadConnections();
+      refresh();
     } catch (error) {
       console.error("Error deleting connection:", error);
     }

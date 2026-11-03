@@ -1,20 +1,27 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+import "./DashboardsPage.css";
 
-import {
-  getDashboardById,
-  updateDashboard,
-  deleteDashboard,
-} from "../service/dashboardService";
-import { getMetricDataPoints } from "../service/metricService";
-import { useHashModal } from "../components/modal/useHashModal";
+import { getDashboardById, updateDashboard, deleteDashboard } from "../../service/dashboardService";
+import { getMetricDataPoints } from "../../service/metricService";
+import { useHashModal } from "../../components/modal/useHashModal";
 
-import type { Dashboard } from "../types/dashboards";
-import type { MetricDataPoint } from "../types/metrics";
+import type { Dashboard } from "../../types/dashboards";
+import type { MetricDataPoint } from "../../types/metrics";
 
-import { FiPlus, FiTrash, FiEdit2, FiCheck, FiX } from "react-icons/fi";
+import { FiPlus, FiTrash, FiEdit2, FiCheck, FiX, FiRefreshCw } from "react-icons/fi";
 
-import ChartCard from "../components/charts/ChartCard";
+import IconButton from "../../components/ui/button/IconButton";
+import { Input } from "../../components/ui/input/Input";
+import { formatDate, formatRelative } from "../../utils/date";
+
+import { DashboardGrid } from "./DashboardGrid";
+import type { TimeRange } from "../../types/charts";
+import { TIME_RANGE_MS } from "../../components/charts/chartTheme";
+
+const REFRESH_INTERVAL_MS = 60_000;
 
 interface DashboardsPageProps {
   version: number;
@@ -24,6 +31,7 @@ interface DashboardsPageProps {
 export default function DashboardsPage({ version, refresh }: DashboardsPageProps) {
   const { id } = useParams<{ id: string }>();
   const { open } = useHashModal();
+  const [notFound, setNotFound] = useState(false);
 
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [series, setSeries] = useState<MetricDataPoint[]>([]);
@@ -32,36 +40,57 @@ export default function DashboardsPage({ version, refresh }: DashboardsPageProps
   const [isEditing, setIsEditing] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
 
-  const loadDashboard = async () => {
-    try {
-      const fetched = await getDashboardById(id!);
-      setDashboard(fetched);
-
-      const metricIds = [
-        ...new Set(
-          fetched.charts.flatMap((chart) =>
-            chart.metrics.map((metric) => metric.id),
-          ),
-        ),
-      ];
-
-      const results = await Promise.all(
-        metricIds.map((metricId) => getMetricDataPoints(metricId)),
-      );
-
-      setSeries(results.flat());
-    } catch (error) {
-      console.error("Error loading dashboard:", error);
-    }
-  };
+  // licznik odświeżeń: zmiana = ponowne pobranie danych
+  const [tick, setTick] = useState(0);
+  const reload = () => setTick((t) => t + 1);
 
   useEffect(() => {
-    loadDashboard();
-  }, [id, version]);
+    const timer = setInterval(reload, REFRESH_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, []);
 
-  if (!dashboard) {
-    return <div>Dashboard not found: {id}</div>;
-  }
+  useEffect(() => {
+    let ignore = false;
+
+    const loadDashboard = async () => {
+      try {
+        const fetched = await getDashboardById(id!);
+        if (ignore) return;
+        setNotFound(false);
+        setDashboard(fetched);
+
+        const rangeByMetric = new Map<number, TimeRange>();
+
+        for (const chart of fetched.charts) {
+          for (const metric of chart.metrics) {
+            const current = rangeByMetric.get(metric.id);
+            if (!current || TIME_RANGE_MS[chart.time_range] > TIME_RANGE_MS[current]) {
+              rangeByMetric.set(metric.id, chart.time_range);
+            }
+          }
+        }
+
+        const results = await Promise.all(
+          [...rangeByMetric].map(([metricId, range]) => getMetricDataPoints(metricId, range)),
+        );
+        if (ignore) return;
+        setSeries(results.flat());
+      } catch (error) {
+        if (ignore) return;
+        setNotFound(true);
+        console.error("Error loading dashboard:", error);
+      }
+    };
+
+    loadDashboard();
+
+    return () => {
+      ignore = true;
+    };
+  }, [id, version, tick]);
+
+  if (notFound) return <div>Dashboard not found: {id}</div>;
+  if (!dashboard) return <p>Loading...</p>;
 
   const handleEdit = () => {
     setTitleDraft(dashboard.title);
@@ -95,7 +124,7 @@ export default function DashboardsPage({ version, refresh }: DashboardsPageProps
   };
 
   const handleDelete = async () => {
-    if (!confirm("Delete this item?")) return;
+    if (!confirm(`Delete dashboard "${dashboard.title}"?`)) return;
 
     try {
       await deleteDashboard(dashboard.id);
@@ -108,80 +137,78 @@ export default function DashboardsPage({ version, refresh }: DashboardsPageProps
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-header">
-        {isEditing ? (
-          <>
-            <input
-              value={titleDraft}
-              maxLength={100}
-              autoFocus
-              onChange={(e) => setTitleDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSave();
-                if (e.key === "Escape") handleCancel();
-              }}
+      <header className="dashboard-header">
+        <div className="dashboard-header__top">
+          {isEditing ? (
+            <div className="dashboard-header__title">
+              <Input
+                label="Title"
+                value={titleDraft}
+                maxLength={100}
+                onChange={(e) => setTitleDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSave();
+                  if (e.key === "Escape") handleCancel();
+                }}
+                autoFocus
+              />
+              <IconButton
+                className="primary"
+                title="Save"
+                icon={<FiCheck />}
+                onClick={handleSave}
+              />
+              <IconButton title="Cancel" icon={<FiX />} onClick={handleCancel} />
+            </div>
+          ) : (
+            <div className="dashboard-header__title">
+              <h3>{dashboard.title}</h3>
+              <IconButton title="Edit title" icon={<FiEdit2 />} onClick={handleEdit} />
+            </div>
+          )}
+
+          <div className="dashboard-header__actions">
+            <IconButton title="Refresh data" icon={<FiRefreshCw />} onClick={reload} />
+            <IconButton
+              className="danger"
+              title="Delete dashboard"
+              icon={<FiTrash />}
+              onClick={handleDelete}
             />
-            <button className="icon-btn" title="Save" onClick={handleSave}>
-              <FiCheck />
-            </button>
-            <button className="icon-btn" title="Cancel" onClick={handleCancel}>
-              <FiX />
-            </button>
-          </>
-        ) : (
-          <>
-            <h3>{dashboard.title}</h3>
-            <button
-              className="icon-btn"
-              title="Edit title"
-              onClick={handleEdit}
-            >
-              <FiEdit2 />
-            </button>
-          </>
-        )}
-
-        <p>Utworzono: {dashboard.created_at}</p>
-        <p>Ostatnia aktualizacja: {dashboard.updated_at}</p>
-        <button
-          className="icon-btn"
-          title="Delete dashboard"
-          onClick={handleDelete}
-        >
-          <FiTrash />
-        </button>
-      </div>
-
-      <div className="dashboard-content">
-        <div className="section-header">
-          <span className="section-title lg">Charts</span>
-          <button
-            className="icon-btn"
-            title="Add new chart"
-            onClick={() => open("add-chart", { dashboard_id: String(dashboard.id) })}
-          >
-            <FiPlus />
-          </button>
+          </div>
         </div>
 
+        <div className="dashboard-header__meta">
+          <span>
+            <b>Utworzono:</b> {formatDate(dashboard.created_at)}
+          </span>
+          {/* <span>
+            <b>Ostatnia aktualizacja:</b> {formatRelative(dashboard.updated_at)}
+          </span> */}
+          <span>
+            <b>Ostatni pomiar:</b>{" "}
+            {series.length > 0
+              ? formatRelative(series[series.length - 1].timestamp)
+              : "Brak danych"}
+          </span>
+        </div>
+      </header>
+
+      <section className="dashboard-charts">
+        <div className="section-header">
+          <span className="section-title lg">Charts</span>
+          <IconButton
+            title="Add new chart"
+            icon={<FiPlus />}
+            onClick={() => open("add-chart", { dashboard_id: String(dashboard.id) })}
+          />
+        </div>
         {dashboard.charts.length === 0 ? (
           <p>No charts yet.</p>
         ) : (
-          dashboard.charts.map((chart) => {
-            const chartMetricIds = new Set(
-              chart.metrics.map((metric) => metric.id),
-            );
-
-            const chartSeries = series.filter((point) =>
-              chartMetricIds.has(point.metric_definition_id),
-            );
-
-            return (
-              <ChartCard key={chart.id} chart={chart} series={chartSeries} />
-            );
-          })
+          <DashboardGrid dashboardId={dashboard.id} charts={dashboard.charts} series={series} />
         )}
-      </div>
+      </section>
     </div>
   );
 }

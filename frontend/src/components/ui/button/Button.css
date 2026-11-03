@@ -37,7 +37,26 @@
   color: #d7dbe4;
 }
 
+.btn.danger.primary {
+  width: 100%;
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  font-size: 0.9rem;
+}
+
 .btn.primary:hover {
   background-color: #1648ac;
   color: #c5c9d2;
+}
+
+.btn.danger:hover {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.btn.danger.primary:hover {
+  background-color: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
 }
