@@ -2,14 +2,15 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from db_connect.database import SessionDep
-from db_connect.models import Chart, MetricDefinition
+from core.database import SessionDep
+from core.dependencies import CurrentAdmin
+from models import Chart, MetricDefinition
 from schemas.charts import ChartCreate, ChartRead, ChartUpdate
 
 router = APIRouter(prefix="/charts", tags=["Charts"])
 
 
-@router.post("/", response_model=ChartRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ChartRead, status_code=status.HTTP_201_CREATED, dependencies=CurrentAdmin)
 async def create_chart(chart_in: ChartCreate, db: SessionDep):
   query = select(Chart).where(Chart.title == chart_in.title)
   chart = (await db.execute(query)).scalar_one_or_none()
@@ -46,7 +47,7 @@ async def get_chart(chart_id: int, db: SessionDep):
   return chart
 
 
-@router.put("/{chart_id}", response_model=ChartRead)
+@router.put("/{chart_id}", response_model=ChartRead, dependencies=CurrentAdmin)
 async def update_chart(chart_id: int, chart_in: ChartUpdate, db: SessionDep):
   query = select(Chart).options(selectinload(Chart.metrics)).where(Chart.id == chart_id)
   chart = (await db.execute(query)).scalar_one_or_none()
@@ -75,7 +76,7 @@ async def update_chart(chart_id: int, chart_in: ChartUpdate, db: SessionDep):
   return chart
 
 
-@router.delete("/{chart_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{chart_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=CurrentAdmin)
 async def delete_chart(chart_id: int, db: SessionDep):
   query = select(Chart).where(Chart.id == chart_id)
   chart = (await db.execute(query)).scalar_one_or_none()

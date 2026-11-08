@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from sqlalchemy import select
 from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional
 
-from db_connect.database import SessionDep
-from db_connect.models import MetricDataPoint, MetricDefinition
+from core.database import SessionDep
+from models import MetricDataPoint, MetricDefinition
 from schemas.metrics import MetricDataPointRead, MetricDefinitionRead
 
 router = APIRouter(prefix="/metrics", tags=["Metrics"])
@@ -19,7 +19,7 @@ TIME_RANGES = {
 }
 
 
-@router.get("/", response_model=list[MetricDefinitionRead])
+@router.get("", response_model=list[MetricDefinitionRead])
 async def get_metric_definitions(db: SessionDep, resource_id: Optional[int] = None ) -> list[MetricDefinition]:
   query = select(MetricDefinition)
 

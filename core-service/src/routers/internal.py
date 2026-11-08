@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 
-from config import verify_internal_key
-from db_connect.database import SessionDep
-from db_connect.models import Connection, Resource, MetricDataPoint, MetricDefinition
+from core.dependencies import verify_internal_key
+from core.database import SessionDep
+from models import Connection, Resource, MetricDataPoint, MetricDefinition
+
 from schemas.connections import ConnectionWithCredentials
 from schemas.resources import ResourceBatchSync, ResourceRead
 from schemas.metrics import MetricBatchIngest, MetricDefinitionCreate, MetricDefinitionRead

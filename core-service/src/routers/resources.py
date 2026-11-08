@@ -1,14 +1,15 @@
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
-from db_connect.database import SessionDep
-from db_connect.models import Resource
+from core.database import SessionDep
+from core.dependencies import CurrentAdmin
+from models import Resource
 from schemas.resources import ResourceRead
 
 router = APIRouter(prefix="/resources", tags=["Resources"])
 
 
-@router.get("/", response_model=list[ResourceRead])
+@router.get("", response_model=list[ResourceRead])
 async def get_resources(db: SessionDep) -> list[Resource]:
   query = select(Resource).order_by(Resource.id.desc())
   result = await db.execute(query)
@@ -30,7 +31,7 @@ async def get_resource(id: int, db: SessionDep) -> Resource:
   return resource
 
 
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=CurrentAdmin)
 async def delete_resource(id: int, db: SessionDep) -> None:
   query = select(Resource).where(Resource.id == id)
   resource = (await db.execute(query)).scalar_one_or_none()

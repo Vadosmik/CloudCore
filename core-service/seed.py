@@ -10,8 +10,8 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func, select
 
-from src.db_connect.database import AsyncSessionLocal
-from src.db_connect.models import (
+from core.database import AsyncSessionLocal
+from src.models import (
   Chart,
   Connection,
   Dashboard,

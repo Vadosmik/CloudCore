@@ -1,18 +1,30 @@
 from collections.abc import AsyncGenerator
 from typing import Annotated
-
+ 
 from fastapi import Depends
+from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+ 
+from core.config import settings
 
-from config import settings
+NAMING_CONVENTION = {
+  "ix": "ix_%(column_0_label)s",
+  "uq": "uq_%(table_name)s_%(column_0_name)s",
+  "ck": "ck_%(table_name)s_%(constraint_name)s",
+  "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+  "pk": "pk_%(table_name)s",
+}
+
+class Base(DeclarativeBase):
+  metadata = MetaData(schema=settings.db_schema, naming_convention=NAMING_CONVENTION)
 
 engine = create_async_engine(
   settings.database_url,
   echo=settings.debug,
   pool_pre_ping=True,
-  pool_size=10,
-  max_overflow=20,
+  pool_size=5,
+  max_overflow=10,
 )
 
 AsyncSessionLocal = async_sessionmaker(
@@ -20,10 +32,6 @@ AsyncSessionLocal = async_sessionmaker(
   class_=AsyncSession,
   expire_on_commit=False,
 )
-
-class Base(DeclarativeBase):
-  pass
-
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
   async with AsyncSessionLocal() as session:

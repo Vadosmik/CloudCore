@@ -12,11 +12,11 @@ from alembic import context
 base_dir = Path(__file__).resolve().parent.parent / "src"
 sys.path.append(str(base_dir))
 
-from config import settings
-from db_connect.database import Base
+from core.config import settings
+from core.database import Base
 
 if any("--autogenerate" in arg for arg in sys.argv):
-  from db_connect import models
+  import models
 
 target_metadata = Base.metadata
 

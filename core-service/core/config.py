@@ -1,10 +1,7 @@
-import secrets
-from fastapi import Header, HTTPException, status
-
 from typing import Annotated, Literal, Optional
 from urllib.parse import quote_plus
 
-from pydantic import Field, SecretStr
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -38,10 +35,3 @@ class Settings(BaseSettings):
   )
 
 settings = Settings()
-
-def verify_internal_key(x_internal_key: Annotated[Optional[str], Header(...)] = None):
-  if x_internal_key is None or not secrets.compare_digest(x_internal_key, settings.internal_api_key.get_secret_value()):
-    raise HTTPException(
-      status_code=status.HTTP_401_UNAUTHORIZED,
-      detail="Invalid or missing X-Internal-Key header."
-    )

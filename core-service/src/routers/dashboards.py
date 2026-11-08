@@ -2,8 +2,9 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from db_connect.database import SessionDep
-from db_connect.models import Chart, Dashboard
+from core.database import SessionDep
+from core.dependencies import CurrentAdmin
+from models import Chart, Dashboard
 from schemas.charts import ChartLayoutItem
 from schemas.dashboards import (
   DashboardCreate,
@@ -23,7 +24,7 @@ async def get_dashboards(db: SessionDep) -> list[DashboardListItem]:
   return dashboards
 
 
-@router.post("", response_model=DashboardRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=DashboardRead, status_code=status.HTTP_201_CREATED, dependencies=CurrentAdmin)
 async def create_dashboard(dashboard_in: DashboardCreate, db: SessionDep):
   query = select(Dashboard).where(Dashboard.title == dashboard_in.title)
   dashboard = (await db.execute(query)).scalar_one_or_none()
@@ -57,7 +58,7 @@ async def get_dashboard(dashboard_id: int, db: SessionDep):
   return dashboard
 
 
-@router.put("/{dashboard_id}", response_model=DashboardRead)
+@router.put("/{dashboard_id}", response_model=DashboardRead, dependencies=CurrentAdmin)
 async def update_dashboard(dashboard_id: int, dashboard_in: DashboardUpdate, db: SessionDep):
   query = select(Dashboard).where(Dashboard.id == dashboard_id)
   dashboard = (await db.execute(query)).scalar_one_or_none()
@@ -79,7 +80,7 @@ async def update_dashboard(dashboard_id: int, dashboard_in: DashboardUpdate, db:
   return dashboard
 
 
-@router.put("/{dashboard_id}/layout", status_code=status.HTTP_204_NO_CONTENT)
+@router.put("/{dashboard_id}/layout", status_code=status.HTTP_204_NO_CONTENT, dependencies=CurrentAdmin)
 async def update_dashboard_layout(dashboard_id: int, layout_in: list[ChartLayoutItem], db: SessionDep):
   query = select(Chart).where(Chart.dashboard_id == dashboard_id)
   charts = {chart.id: chart for chart in (await db.execute(query)).scalars().all()}
@@ -99,7 +100,7 @@ async def update_dashboard_layout(dashboard_id: int, layout_in: list[ChartLayout
   await db.commit()
 
 
-@router.delete("/{dashboard_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{dashboard_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=CurrentAdmin)
 async def delete_dashboard(dashboard_id: int, db: SessionDep):
   query = select(Dashboard).where(Dashboard.id == dashboard_id)
   dashboard = (await db.execute(query)).scalar_one_or_none()

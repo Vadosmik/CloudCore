@@ -11,6 +11,7 @@ services:
     networks: [cloud-core-net]
     depends_on:
       - core-service
+      - account-service
 
   # === collectors ===
   aws-collector:
@@ -37,7 +38,30 @@ services:
       - core-service
     networks: [cloud-core-internal]
 
-  # === cloude core service ===
+  # === MIGRATION ===
+  core-migrate:
+    build: ./core-service
+    command: alembic upgrade head
+    env_file: .env
+    restart: "no"
+    networks: [cloud-core-internal]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  account-migrate:
+    build: ./account-service
+    command: sh -c "alembic upgrade head && python -m src.seed"
+    env_file: .env
+    environment:
+      POSTGRES_DB: user_db
+    restart: "no"
+    networks: [cloud-core-internal]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # === SERVICE ===
   core-service:
     build:
       context: ./core-service
@@ -56,10 +80,22 @@ services:
 
       JWT_SECRET: ${JWT_SECRET}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
-    depends_on:
-      db:
-        condition: service_healthy
     networks: [cloud-core-net, cloud-core-internal]
+    depends_on:
+      core-migrate:
+        condition: service_completed_successfully
+
+  account-service:
+    build: ./account-service
+    container_name: account-service
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_DB: user_db
+    networks: [cloud-core-net, cloud-core-internal]
+    depends_on:
+      account-migrate:
+        condition: service_completed_successfully
 
   db:
     image: postgres:16-alpine
@@ -80,7 +116,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    networks: [cloud-core-net]
+    networks: [cloud-core-internal]
 
 networks:
   cloud-core-internal:
