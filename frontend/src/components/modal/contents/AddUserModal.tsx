@@ -8,27 +8,31 @@ import { useInvalidate } from "../../../context/RefreshContext";
 export default function AddUserModal({ close }: ModalContentProps) {
   // const [title, setTitle] = useState("");
 
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const invalidate = useInvalidate();
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     // if (!title.trim()) return;
 
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const invalidate = useInvalidate();
+    setSaving(true);
+    setError(null);
 
     try {
-      // const newDashboard = await createDashboard({ title: title.trim() });
+      // TODO(user-service): await createUser({ ... });
       invalidate("users");
+      close();
     } catch (error) {
-      console.error("Error add chart:", error);
-      setError("Could not add the chart. Try again.");
+      console.error("Error adding user:", error);
+      setError("Could not add the user. Try again.");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <form className="modal-form" onSubmit={handleSubmit}>
+    <form className="modal__form" onSubmit={handleSubmit}>
       {/* <input
         placeholder="Dashboard name"
         value={title}
@@ -38,11 +42,11 @@ export default function AddUserModal({ close }: ModalContentProps) {
         onChange={e => setTitle(e.target.value)}
       /> */}
 
-      <p>doadj nowego uzytkownika</p>
+      <p>Add a new user</p>
 
-      {error && <p className="modal-error">{error}</p>}
+      {error && <p className="modal__error">{error}</p>}
 
-      <div className="modal-actions">
+      <div className="modal__actions">
         <Button onClick={close}>Cancel</Button>
         {/* || !title.trim() */}
         <Button type="submit" variant="primary" disabled={saving}>

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 import { createDashboard } from "../../../service/dashboardService";
 import type { ModalContentProps } from "../types";
@@ -27,14 +27,14 @@ export default function AddDashboardModal({ close }: ModalContentProps) {
       navigate(`/dashboards/${newDashboard.id}`, { replace: true });
     } catch (error) {
       console.error("Error creating dashboard:", error);
-      setError("Could not creating the dashboard. Try again.");
+      setError("Could not create the dashboard. Try again.");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <form className="modal-form" onSubmit={handleSubmit}>
+    <form className="modal__form" onSubmit={handleSubmit}>
       <Input
         label="Dashboard name"
         placeholder="Dashboard name"
@@ -45,9 +45,9 @@ export default function AddDashboardModal({ close }: ModalContentProps) {
         required
       />
 
-      {error && <p className="modal-error">{error}</p>}
+      {error && <p className="modal__error">{error}</p>}
 
-      <div className="modal-actions">
+      <div className="modal__actions">
         <Button onClick={close}>Cancel</Button>
         <Button type="submit" variant="primary" disabled={saving || !title.trim()}>
           {saving ? "Saving..." : "Save"}

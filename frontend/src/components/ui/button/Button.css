@@ -71,7 +71,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
   background-color: var(--color-surface);
 }
 
@@ -154,9 +154,20 @@
 
 .btn--danger:hover:not(:disabled) {
   background-color: var(--color-error);
-  color: var(--raw-white);
+  color: var(--color-on-primary);
 }
 
 .btn--danger:active:not(:disabled) {
   filter: brightness(0.9);
+}
+
+/* Danger jako ikonka: sama czerwona ikona, tło dopiero na hover */
+.btn--icon.btn--danger {
+  background-color: transparent;
+  color: var(--color-error);
+}
+
+.btn--icon.btn--danger:hover:not(:disabled) {
+  background-color: var(--color-danger-bg);
+  color: var(--color-error);
 }

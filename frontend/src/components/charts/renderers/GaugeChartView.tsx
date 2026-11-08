@@ -2,7 +2,13 @@ import ReactECharts from "echarts-for-react";
 import type { EChartsOption, GaugeSeriesOption } from "echarts";
 import type { Chart } from "../../../types/charts";
 import type { MetricDataPoint } from "../../../types/metrics";
-import { CHART_COLORS, formatMetric } from "../chartTheme";
+import {
+  chartTokens,
+  formatMetric,
+  formatTime,
+  seriesColor,
+  tooltipStyle,
+} from "../chartTheme";
 
 export default function GaugeChartView({
   chart,
@@ -11,12 +17,13 @@ export default function GaugeChartView({
   chart: Chart;
   series?: MetricDataPoint[];
 }) {
+  const t = chartTokens();
   const metrics = chart.metrics;
   const count = metrics.length;
 
   const option: EChartsOption = {
-    color: CHART_COLORS,
-    tooltip: { trigger: "item" },
+    textStyle: { fontFamily: t.font },
+    tooltip: { trigger: "item", ...tooltipStyle(t) },
     series: metrics.map((metric, index): GaugeSeriesOption => {
       // backend zwraca punkty rosnąco po czasie -> ostatni = najnowszy
       const latest = series.filter((point) => point.metric_definition_id === metric.id).at(-1);
@@ -25,39 +32,45 @@ export default function GaugeChartView({
 
       const isPercent = metric.unit === "Percent";
       const max = isPercent ? 100 : Math.ceil(value * 1.5) || 1;
+      const color = seriesColor(index);
 
-      const time = latest
-        ? new Date(latest.timestamp).toLocaleTimeString("pl-PL", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-        : "";
+      // przy kilku metrykach pierścienie są mniejsze, więc i tekst
+      const scale = count > 1 ? Math.max(0.6, 1 / Math.sqrt(count)) : 1;
 
       return {
         name: metric.name,
         type: "gauge",
         center: [`${((index + 0.5) / count) * 100}%`, "55%"],
-        radius: count > 1 ? `${Math.min(75, 90 / count)}%` : "90%",
+        radius: count > 1 ? `${Math.min(75, 90 / count)}%` : "85%",
+        startAngle: 220,
+        endAngle: -40,
         min: 0,
         max,
-        pointer: { show: hasData },
-        progress: { show: hasData, width: 10 },
-        axisLine: { lineStyle: { width: 10 } },
-        axisLabel: {
-          distance: 15,
-          fontSize: 10,
-          formatter: (v: number) => formatMetric(v, metric.unit),
+        // pierścień: tło + postęp z zaokrąglonymi końcami, bez wskazówki i podziałki
+        pointer: { show: false },
+        anchor: { show: false },
+        axisTick: { show: false },
+        splitLine: { show: false },
+        axisLabel: { show: false },
+        axisLine: { roundCap: true, lineStyle: { width: 12 * scale, color: [[1, t.divider]] } },
+        progress: { show: hasData, roundCap: true, width: 12 * scale, itemStyle: { color } },
+        title: {
+          offsetCenter: [0, "32%"],
+          fontSize: 11 * scale,
+          color: t.subtle,
+          lineHeight: 14 * scale,
         },
-        title: { offsetCenter: [0, "75%"], fontSize: 12 },
         detail: {
-          offsetCenter: [0, "40%"],
-          fontSize: 16,
+          offsetCenter: [0, "-4%"],
+          fontSize: (hasData ? 26 : 14) * scale,
+          fontWeight: 600,
+          color: hasData ? t.text : t.subtle,
           formatter: (v) => (hasData ? formatMetric(Number(v), metric.unit) : "No data"),
         },
         data: [
           {
             value,
-            name: hasData ? `${metric.name}\nas of ${time}` : metric.name,
+            name: hasData ? `${metric.name}\n${formatTime(latest.timestamp)}` : metric.name,
           },
         ],
       };

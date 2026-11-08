@@ -126,7 +126,9 @@ select.input-field__control {
   position: absolute;
   right: 6px;
   top: 50%;
-  transform: translateY(-50%);
+  /* osobna właściwość translate, a nie transform: przycisk przy :active robi
+     transform: scale(0.9), co nadpisywało translateY i ikonka skakała w dół */
+  translate: 0 -50%;
 }
 
 /* === ERROR === */

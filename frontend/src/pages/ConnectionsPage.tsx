@@ -51,9 +51,9 @@ export default function ConnectionsPage() {
   };
 
   return (
-    <div className="connection-page">
-      <header className="connection-page__header">
-        <h1 className="connection-page__title">Connections</h1>
+    <div className="page connection-page">
+      <header className="page__header">
+        <h1 className="page__title">Connections</h1>
         <IconButton
           title="Add connection"
           icon={<FiPlus />}
@@ -62,43 +62,34 @@ export default function ConnectionsPage() {
       </header>
 
       {loading ? (
-        <p className="connection-page__message">Loading connections...</p>
+        <p className="page__message">Loading connections...</p>
       ) : loadError ? (
         <div className="page__message">
           <p>Could not load your connections.</p>
-          <Button onClick={loadConnections} title={""}>
-            Try again
-          </Button>
+          <Button onClick={loadConnections}>Try again</Button>
         </div>
       ) : connections.length === 0 ? (
         <div className="page__empty">
           <h2>No connections yet</h2>
           <Button variant="primary" onClick={() => open("add-connection")}>
             <FiPlus />
-            Add your first connections
+            Add your first connection
           </Button>
         </div>
       ) : (
         <div className="connection-page__list">
           {connections.map((connection) => (
-            <div key={connection.id} className="connection-item">
-              <div className="connection-meta">
+            <div key={connection.id} className="connection-page__item">
+              <div className="connection-page__meta">
                 <span
-                  className="connection-provider"
-                  style={
-                    connection.provider === "AWS"
-                      ? { color: "#FF9900" }
-                      : connection.provider === "GCP"
-                        ? { color: "#4285F4" }
-                        : {}
-                  }
+                  className={`connection-page__provider connection-page__provider--${connection.provider.toLowerCase()}`}
                 >
                   {connection.provider}
                 </span>
                 <span>{connection.name}</span>
               </div>
               <IconButton
-                className="danger"
+                variant="danger"
                 title="Delete connection"
                 icon={<FiTrash />}
                 onClick={() => handleDelete(connection)}

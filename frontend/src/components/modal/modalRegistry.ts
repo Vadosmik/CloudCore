@@ -14,5 +14,5 @@ export const modalRegistry: Record<
   "add-dashboard": { title: "Add dashboard", Content: AddDashboardModal },
   "add-chart": { title: "Add chart", Content: ChartFormModal },
   "edit-chart": { title: "Edit chart", Content: ChartFormModal },
-  setting: { title: "Setting", Content: SettingModal },
+  setting: { title: "Settings", Content: SettingModal },
 };

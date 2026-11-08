@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import "./DashboardsPage.css";
@@ -7,6 +7,7 @@ import "./DashboardsPage.css";
 import { getDashboardById, updateDashboard, deleteDashboard } from "../../service/dashboardService";
 import { getMetricDataPoints } from "../../service/metricService";
 import { useHashModal } from "../../components/modal/useHashModal";
+import { useInvalidate, useVersion } from "../../context/RefreshContext";
 
 import type { Dashboard } from "../../types/dashboards";
 import type { MetricDataPoint } from "../../types/metrics";
@@ -14,7 +15,7 @@ import type { MetricDataPoint } from "../../types/metrics";
 import { FiPlus, FiTrash, FiEdit2, FiCheck, FiX, FiRefreshCw } from "react-icons/fi";
 
 import IconButton from "../../components/ui/button/IconButton";
-import { Input } from "../../components/ui/input/Input";
+// import { Input } from "../../components/ui/input/Input";
 import { formatDate, formatRelative } from "../../utils/date";
 
 import { DashboardGrid } from "./DashboardGrid";
@@ -26,6 +27,8 @@ const REFRESH_INTERVAL_MS = 60_000;
 export default function DashboardsPage() {
   const { id } = useParams<{ id: string }>();
   const { open } = useHashModal();
+  const chartsVersion = useVersion("charts");
+  const invalidate = useInvalidate();
   const [notFound, setNotFound] = useState(false);
 
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
@@ -34,6 +37,7 @@ export default function DashboardsPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
+  const savingTitle = useRef(false);
 
   // licznik odświeżeń: zmiana = ponowne pobranie danych
   const [tick, setTick] = useState(0);
@@ -82,7 +86,7 @@ export default function DashboardsPage() {
     return () => {
       ignore = true;
     };
-  }, [id, version, tick]);
+  }, [id, chartsVersion, tick]);
 
   if (notFound) return <div>Dashboard not found: {id}</div>;
   if (!dashboard) return <p>Loading...</p>;
@@ -97,24 +101,25 @@ export default function DashboardsPage() {
   };
 
   const handleSave = async () => {
-    const title = titleDraft.trim();
-    if (title === "") {
-      alert("Title cannot be empty.");
-      return;
-    }
+    // Enter + blur mogą odpalić zapis dwa razy, więc drugi ignorujemy
+    if (savingTitle.current) return;
 
-    if (title === dashboard.title) {
+    const title = titleDraft.trim();
+    if (title === "" || title === dashboard.title) {
       setIsEditing(false);
       return;
     }
 
+    savingTitle.current = true;
     try {
       const updated = await updateDashboard(dashboard.id, { title });
       setDashboard((prev) => (prev ? { ...prev, ...updated } : updated));
       setIsEditing(false);
-      refresh();
+      invalidate("dashboards");
     } catch (error) {
       console.error("Error updating dashboard: ", error);
+    } finally {
+      savingTitle.current = false;
     }
   };
 
@@ -123,7 +128,7 @@ export default function DashboardsPage() {
 
     try {
       await deleteDashboard(dashboard.id);
-      refresh();
+      invalidate("dashboards");
       navigate("/");
     } catch (error) {
       console.error("Error deleting dashboard: ", error);
@@ -131,41 +136,54 @@ export default function DashboardsPage() {
   };
 
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <div className="dashboard-header__top">
+    <div className="page dashboard-page">
+      <header className="dashboard-page__header">
+        <div className="page__header">
           {isEditing ? (
-            <div className="dashboard-header__title">
-              <Input
-                label="Title"
+            <div className="dashboard-page__title">
+              {/* edycja w miejscu: input wygląda jak <h1>, więc nagłówek nie skacze */}
+              <input
+                className="page__title dashboard-page__title-input"
+                aria-label="Dashboard title"
                 value={titleDraft}
                 maxLength={100}
+                style={{ width: `${Math.max(titleDraft.length, 4) + 1}ch` }}
                 onChange={(e) => setTitleDraft(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleSave();
                   if (e.key === "Escape") handleCancel();
                 }}
+                onBlur={handleSave}
                 autoFocus
+                onFocus={(e) => e.currentTarget.select()}
               />
+              {/* onMouseDown + preventDefault: klik w przycisk nie zabiera fokusu z inputa,
+                  więc onBlur (zapis) nie odpali się przed Cancel */}
               <IconButton
-                className="primary"
+                variant="primary"
                 title="Save"
                 icon={<FiCheck />}
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={handleSave}
               />
-              <IconButton title="Cancel" icon={<FiX />} onClick={handleCancel} />
+              <IconButton
+                title="Cancel"
+                icon={<FiX />}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleCancel}
+              />
             </div>
           ) : (
-            <div className="dashboard-header__title">
-              <h3>{dashboard.title}</h3>
+            <div className="dashboard-page__title">
+              <h1 className="page__title">{dashboard.title}</h1>
               <IconButton title="Edit title" icon={<FiEdit2 />} onClick={handleEdit} />
             </div>
           )}
 
-          <div className="dashboard-header__actions">
+          <div className="dashboard-page__actions">
             <IconButton title="Refresh data" icon={<FiRefreshCw />} onClick={reload} />
             <IconButton
-              className="danger"
+              variant="danger"
               title="Delete dashboard"
               icon={<FiTrash />}
               onClick={handleDelete}
@@ -173,25 +191,25 @@ export default function DashboardsPage() {
           </div>
         </div>
 
-        <div className="dashboard-header__meta">
+        <div className="dashboard-page__meta">
           <span>
-            <b>Utworzono:</b> {formatDate(dashboard.created_at)}
+            <b>Created:</b> {formatDate(dashboard.created_at)}
           </span>
           {/* <span>
             <b>Ostatnia aktualizacja:</b> {formatRelative(dashboard.updated_at)}
           </span> */}
           <span>
-            <b>Ostatni pomiar:</b>{" "}
+            <b>Last measurement:</b>{" "}
             {series.length > 0
               ? formatRelative(series[series.length - 1].timestamp)
-              : "Brak danych"}
+              : "No data"}
           </span>
         </div>
       </header>
 
-      <section className="dashboard-charts">
-        <div className="section-header">
-          <span className="section-title lg">Charts</span>
+      <section className="dashboard-page__charts">
+        <div className="dashboard-page__section">
+          <h2 className="dashboard-page__section-title">Charts</h2>
           <IconButton
             title="Add new chart"
             icon={<FiPlus />}
@@ -199,7 +217,9 @@ export default function DashboardsPage() {
           />
         </div>
         {dashboard.charts.length === 0 ? (
-          <p>No charts yet.</p>
+          <div className="page__empty">
+            <h2>No charts yet</h2>
+          </div>
         ) : (
           <DashboardGrid dashboardId={dashboard.id} charts={dashboard.charts} series={series} />
         )}

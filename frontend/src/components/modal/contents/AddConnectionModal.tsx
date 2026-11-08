@@ -7,6 +7,7 @@ import { Input } from "../../ui/input/Input";
 import { Select } from "../../ui/input/Select";
 import Button from "../../ui/button/Button";
 import { useInvalidate } from "../../../context/RefreshContext";
+import { Textarea } from "../../ui/input/Textarea";
 
 export default function AddConnectionModal({ close }: ModalContentProps) {
   const [name, setName] = useState("");
@@ -14,6 +15,8 @@ export default function AddConnectionModal({ close }: ModalContentProps) {
   const [accessKeyId, setAccessKeyId] = useState("");
   const [secretAccessKey, setSecretAccessKey] = useState("");
   const [region, setRegion] = useState("");
+
+  const [gcpKey, setGcpKey] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,14 +29,31 @@ export default function AddConnectionModal({ close }: ModalContentProps) {
     setSaving(true);
     setError(null);
 
-    const credentials =
-      provider === "AWS"
-        ? JSON.stringify({
-            aws_access_key_id: accessKeyId.trim(),
-            aws_secret_access_key: secretAccessKey.trim(),
-            region: region.trim(),
-          })
-        : "";
+    let credentials = "";
+
+    if (provider === "AWS") {
+      credentials = JSON.stringify({
+        aws_access_key_id: accessKeyId.trim(),
+        aws_secret_access_key: secretAccessKey.trim(),
+        region: region.trim(),
+      });
+    } else {
+      try {
+        const key = JSON.parse(gcpKey);
+
+        if (key.type !== "service_account" || !key.project_id || !key.private_key) {
+          setError("This is not a valid service account key.");
+          setSaving(false);
+          return;
+        }
+
+        credentials = JSON.stringify(key);
+      } catch {
+        setError("Key must be valid JSON.");
+        setSaving(false);
+        return;
+      }
+    }
 
     try {
       await createConnections({
@@ -41,18 +61,18 @@ export default function AddConnectionModal({ close }: ModalContentProps) {
         provider,
         credentials,
       });
-      invalidate("conections");
+      invalidate("connections");
       close();
     } catch (error) {
       console.error("Error adding connection: ", error);
-      setError("Could not adding the connection. Try again.");
+      setError("Could not add the connection. Try again.");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <form className="modal-form" onSubmit={handleSubmit}>
+    <form className="modal__form" onSubmit={handleSubmit}>
       <Input
         label="Connection name"
         value={name}
@@ -101,12 +121,30 @@ export default function AddConnectionModal({ close }: ModalContentProps) {
           />
         </>
       ) : (
-        <p>GCp</p>
+        <>
+          <input
+            type="file"
+            accept="application/json,.json"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (file) setGcpKey(await file.text());
+            }}
+          />
+          <Textarea
+            label="Service account key (JSON)"
+            value={gcpKey}
+            onChange={(e) => setGcpKey(e.target.value)}
+            placeholder='{ "type": "service_account", "project_id": "...", ... }'
+            rows={6}
+            spellCheck={false}
+            required
+          />
+        </>
       )}
 
-      {error && <p className="modal-error">{error}</p>}
+      {error && <p className="modal__error">{error}</p>}
 
-      <div className="modal-actions">
+      <div className="modal__actions">
         <Button onClick={close}>Cancel</Button>
         <Button type="submit" variant="primary" disabled={saving || !name.trim()}>
           {saving ? "Saving..." : "Save"}

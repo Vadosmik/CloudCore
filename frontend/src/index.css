@@ -67,6 +67,17 @@
   --color-ghost-active: rgba(30, 29, 29, 0.12);
   --color-danger-bg: rgba(244, 67, 54, 0.1);
 
+  --color-divider: rgba(30, 29, 29, 0.12);
+  --color-text-subtle: rgba(30, 29, 29, 0.5);
+  --color-overlay: rgba(17, 17, 17, 0.4);
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.25);
+
+  /* Providers (kolory marek) */
+  --color-aws: #ff9900;
+  --color-gcp: #4285f4;
+
   color-scheme: light;
 }
 

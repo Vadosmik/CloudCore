@@ -80,7 +80,7 @@ export default function Modal({ open, title, onClose, children, footer }: ModalP
       }}
     >
       <div
-        className="modal-header"
+        className="modal__header"
         onPointerDown={onDragStart}
         onPointerMove={onDragMove}
         onPointerUp={onDragEnd}
@@ -89,8 +89,8 @@ export default function Modal({ open, title, onClose, children, footer }: ModalP
         <h2 id={titleId}>{title}</h2>
         <IconButton title="Close Modal" icon={<FiX />} onClick={onClose} />
       </div>
-      <div className="modal-content">{children}</div>
-      {footer && <div className="modal-footer">{footer}</div>}
+      <div className="modal__content">{children}</div>
+      {footer && <div className="modal__footer">{footer}</div>}
     </dialog>
   );
 }

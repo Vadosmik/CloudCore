@@ -1,28 +1,69 @@
-.main-content {
+/* === Layout === */
+.app-layout {
+  --top-bar-height: 56px;
   display: grid;
-  gap: 1.25rem 2rem;
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .app-layout--desktop {
   grid-template-columns: auto 1fr;
   grid-template-areas: "nav content";
-  align-items: start;
 }
 
+/* Mobile: TopBar na górze, sidebar jako wysuwany panel (position: fixed w Sidebar.css) */
 .app-layout--mobile {
   grid-template-columns: 1fr;
+  grid-template-rows: var(--top-bar-height) 1fr;
   grid-template-areas:
     "top"
     "content";
-  padding: 1rem 1rem calc(5.5rem + env(safe-area-inset-bottom));
 }
 
 .app-content {
   grid-area: content;
   min-width: 0;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.app-layout--mobile .app-content {
+  padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+}
+
+.app-loading {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+/* === Wspólne dla wszystkich stron === */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page__title {
+  font-size: var(--fs-xl);
+  color: var(--color-text);
+}
+
+.app-layout--mobile {
+  .page {
+    gap: 1rem;
+  }
+
+  .page__title {
+    font-size: var(--fs-lg);
+  }
 }
 
 /* === Empty & Loading States === */

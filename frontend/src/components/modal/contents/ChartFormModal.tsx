@@ -43,7 +43,7 @@ export default function ChartFormModal({ close, params }: ModalContentProps) {
       .then(setResources)
       .catch((error) => {
         console.error("Error loading resources:", error);
-        setError("Could not loading the resources. Try again.");
+        setError("Could not load the resources. Try again.");
       });
   }, []);
 
@@ -59,7 +59,7 @@ export default function ChartFormModal({ close, params }: ModalContentProps) {
       })
       .catch((error) => {
         console.error("Error loading chart:", error);
-        setError("Could not loading the chart. Try again.");
+        setError("Could not load the chart. Try again.");
       });
   }, [chartId]);
 
@@ -70,7 +70,7 @@ export default function ChartFormModal({ close, params }: ModalContentProps) {
       .then(setMetrics)
       .catch((error) => {
         console.error("Error loading metrics:", error);
-        setError("Could not loading the metrics. Try again.");
+        setError("Could not load the metrics. Try again.");
       });
   }, [resourceId]);
 
@@ -112,7 +112,7 @@ export default function ChartFormModal({ close, params }: ModalContentProps) {
       close();
     } catch (error) {
       console.error("Error adding chart:", error);
-      setError("Could not adding the chart. Try again.");
+      setError("Could not add the chart. Try again.");
     } finally {
       setSaving(false);
     }
@@ -127,14 +127,14 @@ export default function ChartFormModal({ close, params }: ModalContentProps) {
       close();
     } catch (error) {
       console.error("Error deleting chart: ", error);
-      setError("Could not deleting the chart. Try again.");
+      setError("Could not delete the chart. Try again.");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <form className="modal-form" onSubmit={handleSubmit}>
+    <form className="modal__form" onSubmit={handleSubmit}>
       <Input
         label="Chart title"
         value={title}
@@ -189,12 +189,13 @@ export default function ChartFormModal({ close, params }: ModalContentProps) {
         (metrics.length === 0 ? (
           <p>No metrics for this resource yet.</p>
         ) : (
-          <div className="chip-group">
+          <div className="modal__chips">
             {metrics.map((metric) => {
               const isDisabled = Boolean(currentUnitType && metric.unit !== currentUnitType);
 
               return (
                 <Checkbox
+                  variant="chip"
                   key={metric.id}
                   label={`${metric.name} (${metric.unit})`}
                   checked={metricIds.includes(metric.id)}
@@ -206,11 +207,11 @@ export default function ChartFormModal({ close, params }: ModalContentProps) {
           </div>
         ))}
 
-      {error && <p className="modal-error">{error}</p>}
+      {error && <p className="modal__error">{error}</p>}
 
-      <div className="modal-actions">
+      <div className="modal__actions">
         {isEdit && (
-          <Button variant="danger" onClick={handleDelete}>
+          <Button variant="danger" className="modal__actions-start" onClick={handleDelete}>
             Delete chart
           </Button>
         )}

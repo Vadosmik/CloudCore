@@ -1,44 +1,83 @@
-.dashboard-header {
+/* wspólne .page / .page__header / .page__title / .page__empty są w App.css */
+
+/* === Header === */
+.dashboard-page__header {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-bottom: 16px;
 }
 
-.dashboard-header__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.dashboard-header__title {
+.dashboard-page__title {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
-.dashboard-header__title .input-field {
-  margin-top: 0;
+/* input wygląda jak tytuł: ta sama czcionka i wysokość, bez ramki */
+.dashboard-page__title-input {
+  min-width: 4ch;
+  max-width: 100%;
+  field-sizing: content;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: var(--fs-xl);
+  line-height: 1.2;
+  color: var(--color-text);
+  caret-color: var(--color-accent);
+  /* podkreślenie przez cień, żeby nie zmieniać wysokości */
+  box-shadow: 0 2px 0 var(--color-accent);
 }
 
-.dashboard-header__actions {
+.app-layout--mobile .dashboard-page__title-input {
+  font-size: var(--fs-lg);
+}
+
+.dashboard-page__actions {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.dashboard-header__meta {
+.dashboard-page__meta {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 4px 16px;
-  font-size: 0.8rem;
-  color: #6b7280;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
 }
 
-.dashboard-charts__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-  gap: 16px;
+/* === Charts === */
+.dashboard-page__section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.dashboard-page__section-title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+/* === Mobile: wykresy jeden pod drugim (DashboardGrid) === */
+.dashboard-page__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dashboard-page__stack-item {
+  height: 300px;
+}
+
+/* nagłówek nie służy tu do przeciągania */
+.dashboard-page__stack .chart-card__header {
+  cursor: default;
 }

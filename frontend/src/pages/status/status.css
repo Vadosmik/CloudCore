@@ -8,7 +8,12 @@
   text-align: center;
 }
 
-.status-page h1 {
-  margin: 0;
-  font-size: 4rem;
+.status-page__code {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-black);
+  color: var(--color-primary);
+}
+
+.status-page__text {
+  color: var(--color-text-muted);
 }

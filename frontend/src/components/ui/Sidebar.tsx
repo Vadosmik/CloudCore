@@ -4,17 +4,25 @@ import { useState, useEffect, useCallback } from "react";
 import "./Sidebar.css";
 
 import { getDashboards } from "../../service/dashboardService";
-import { useInvalidate, useVersion } from "../../context/RefreshContext";
+import { /* useInvalidate, */ useVersion } from "../../context/RefreshContext";
 import { useHashModal } from "../modal/useHashModal";
 
 import { FiSettings, FiUser, FiUsers, FiLink, FiPlus } from "react-icons/fi";
 import IconButton from "./button/IconButton";
 import type { DashboardListItem } from "../../types/dashboards";
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean; // tylko mobile: czy panel jest wysunięty
+}
+
+// klasa linku w menu: aktywny link dostaje modyfikator --active
+const navItemClass = ({ isActive }: { isActive: boolean }) =>
+  `sidebar__item ${isActive ? "sidebar__item--active" : ""}`;
+
+export default function Sidebar({ isOpen = false }: SidebarProps) {
   const dashboardsVersion = useVersion("dashboards");
   const { open } = useHashModal();
-  const invalidate = useInvalidate();
+  // const invalidate = useInvalidate();
 
   const [dashboards, setDashboards] = useState<DashboardListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,19 +46,21 @@ export default function Sidebar() {
   }, [dashboardsVersion, loadDashboards]);
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
-        <NavLink to="/" className="item">
+    <aside id="sidebar" className={`sidebar ${isOpen ? "sidebar--open" : ""}`}>
+      <div className="sidebar__header">
+        <NavLink to="/" className="sidebar__logo">
           <span>⌘</span> CloudCore
         </NavLink>
       </div>
 
-      <div className="sidebar-content">
-        <div className="section-title">ADMIN</div>
+      <div className="sidebar__content">
+        <div className="sidebar__section">
+          <span className="sidebar__section-title">Admin</span>
+        </div>
 
         <NavLink
           to="/users"
-          className={({ isActive }) => `dashboard-item ${isActive ? "active" : ""}`}
+          className={navItemClass}
         >
           <FiUsers />
           <span>Users</span>
@@ -58,41 +68,46 @@ export default function Sidebar() {
 
         <NavLink
           to="/connections"
-          className={({ isActive }) => `dashboard-item ${isActive ? "active" : ""}`}
+          className={navItemClass}
         >
           <FiLink />
           <span>Connections</span>
         </NavLink>
 
-        <div className="section-header">
-          <span className="section-title">DASHBOARDS</span>
+        <div className="sidebar__section">
+          <span className="sidebar__section-title">Dashboards</span>
 
           <IconButton
-            className="icon-btn"
-            title="Dodaj nowy pulpit"
+            title="Add dashboard"
             icon={<FiPlus />}
             onClick={() => open("add-dashboard")}
           />
         </div>
+        {loading && <p className="sidebar__message">Loading...</p>}
+        {loadError && (
+          <button type="button" className="sidebar__item" onClick={loadDashboards}>
+            <span>Could not load. Retry</span>
+          </button>
+        )}
         {dashboards.map((item) => (
           <NavLink
             key={item.id}
             to={`/dashboards/${item.id}`}
-            className={({ isActive }) => `dashboard-item ${isActive ? "active" : ""}`}
+            className={navItemClass}
           >
             <span>{item.title}</span>
           </NavLink>
         ))}
       </div>
 
-      <div className="sidebar-footer">
-        <div className="user-info">
-          <FiUser className="avatar-icon" />
-          <span className="username">Admin</span>
+      <div className="sidebar__footer">
+        <div className="sidebar__user">
+          <FiUser className="sidebar__avatar" />
+          <span>Admin</span>
         </div>
         <IconButton
-          className="icon-btn settings-btn"
-          title="Ustawienia"
+          rotateOnHover
+          title="Settings"
           icon={<FiSettings />}
           onClick={() => open("setting")}
         />

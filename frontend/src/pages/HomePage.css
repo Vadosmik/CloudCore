@@ -1,19 +1,4 @@
-.home-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-/* === Header === */
-.page__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.page__title {
-  font-size: 1.75rem;
-  color: var(--color-text);
-  margin: 0;
+/* wspólne .page / .page__header / .page__title są w App.css */
+.home-page__hint {
+  color: var(--color-text-muted);
 }

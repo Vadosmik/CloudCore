@@ -15,23 +15,22 @@ export default function ChartCard({ chart, series }: { chart: Chart; series: Met
 
   return (
     <div className="chart-card">
-      <div className="chart-card-header">
-        <div className="chart-card-header__top">
-          <span className="section-title lg">{chart.title}</span>
-          <div className="chart-card-header__actions">
+      <div className="chart-card__header">
+        <div className="chart-card__header-top">
+          <span className="chart-card__title">{chart.title}</span>
+          <div className="chart-card__actions">
             <IconButton
-              className="header__actions"
               title="Chart setting"
               icon={<FiSettings />}
               onClick={() => open("edit-chart", { chart_id: String(chart.id) })}
             />
           </div>
         </div>
-        <span className="chart-card-subtitle">
+        <span className="chart-card__subtitle">
           {[range, chart.metrics.map((m) => m.name).join(", ")].filter(Boolean).join(" · ")}
         </span>
       </div>
-      <div className="chart-card-body">
+      <div className="chart-card__body">
         <View chart={chart} series={series} />
       </div>
     </div>

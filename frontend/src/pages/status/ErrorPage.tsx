@@ -1,13 +1,12 @@
 import "./status.css";
+import Button from "../../components/ui/button/Button";
 
 export default function ErrorPage() {
   return (
     <div className="status-page">
-      <h1>Oops</h1>
-      <p>Something went wrong.</p>
-      <button type="button" onClick={() => window.location.assign("/")}>
-        Back to home
-      </button>
+      <h1 className="status-page__code">Oops</h1>
+      <p className="status-page__text">Something went wrong.</p>
+      <Button onClick={() => window.location.assign("/")}>Back to home</Button>
     </div>
   );
 }
