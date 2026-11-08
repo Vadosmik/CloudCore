@@ -1,34 +1,41 @@
-import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
+
+import { useState, useEffect, useCallback } from "react";
 import "./Sidebar.css";
 
 import { getDashboards } from "../../service/dashboardService";
+import { useInvalidate, useVersion } from "../../context/RefreshContext";
 import { useHashModal } from "../modal/useHashModal";
+
 import { FiSettings, FiUser, FiUsers, FiLink, FiPlus } from "react-icons/fi";
 import IconButton from "./button/IconButton";
 import type { DashboardListItem } from "../../types/dashboards";
 
-export default function Sidebar({ refreshKey }: { refreshKey: number }) {
-  const [dashboards, setDashboards] = useState<DashboardListItem[]>([]);
+export default function Sidebar() {
+  const dashboardsVersion = useVersion("dashboards");
   const { open } = useHashModal();
+  const invalidate = useInvalidate();
+
+  const [dashboards, setDashboards] = useState<DashboardListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
+  const loadDashboards = useCallback(async () => {
+    setLoadError(false);
+    try {
+      const data = await getDashboards();
+      setDashboards(data);
+    } catch (err) {
+      console.error("Error loading dashboards:", err);
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let ignore = false;
-
-    getDashboards()
-      .then((fetched) => {
-        if (!ignore) setDashboards(fetched);
-      })
-      .catch((error) => console.error("Error loading dashboards:", error));
-
-    return () => {
-      ignore = true;
-    };
-  }, [refreshKey]);
-
-  // const handleOpenSettings = () => {
-  //   navigate("#settings");
-  // };
+    loadDashboards();
+  }, [dashboardsVersion, loadDashboards]);
 
   return (
     <aside className="sidebar">
@@ -43,9 +50,7 @@ export default function Sidebar({ refreshKey }: { refreshKey: number }) {
 
         <NavLink
           to="/users"
-          className={({ isActive }) =>
-            `dashboard-item ${isActive ? "active" : ""}`
-          }
+          className={({ isActive }) => `dashboard-item ${isActive ? "active" : ""}`}
         >
           <FiUsers />
           <span>Users</span>
@@ -53,9 +58,7 @@ export default function Sidebar({ refreshKey }: { refreshKey: number }) {
 
         <NavLink
           to="/connections"
-          className={({ isActive }) =>
-            `dashboard-item ${isActive ? "active" : ""}`
-          }
+          className={({ isActive }) => `dashboard-item ${isActive ? "active" : ""}`}
         >
           <FiLink />
           <span>Connections</span>
@@ -75,9 +78,7 @@ export default function Sidebar({ refreshKey }: { refreshKey: number }) {
           <NavLink
             key={item.id}
             to={`/dashboards/${item.id}`}
-            className={({ isActive }) =>
-              `dashboard-item ${isActive ? "active" : ""}`
-            }
+            className={({ isActive }) => `dashboard-item ${isActive ? "active" : ""}`}
           >
             <span>{item.title}</span>
           </NavLink>

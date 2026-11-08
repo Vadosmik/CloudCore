@@ -12,6 +12,7 @@ import Button from "../../ui/button/Button";
 import { Input } from "../../ui/input/Input";
 import { Select } from "../../ui/input/Select";
 import { Checkbox } from "../../ui/input/Checkbox";
+import { useInvalidate } from "../../../context/RefreshContext";
 
 const CHART_TYPES: { value: ChartType; label: string }[] = [
   { value: "line", label: "Line" },
@@ -20,7 +21,7 @@ const CHART_TYPES: { value: ChartType; label: string }[] = [
   { value: "gauge", label: "Gauge" },
 ];
 
-export default function ChartFormModal({ close, params, onChanged }: ModalContentProps) {
+export default function ChartFormModal({ close, params }: ModalContentProps) {
   const chartId = params.get("chart_id");
   const isEdit = chartId !== null;
   const dashboardId = Number(params.get("dashboard_id"));
@@ -33,10 +34,17 @@ export default function ChartFormModal({ close, params, onChanged }: ModalConten
   const [resources, setResources] = useState<Resource[]>([]);
   const [metrics, setMetrics] = useState<MetricDefinition[]>([]);
 
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const invalidate = useInvalidate();
+
   useEffect(() => {
     getResources()
       .then(setResources)
-      .catch((error) => console.error("Error loading resources:", error));
+      .catch((error) => {
+        console.error("Error loading resources:", error);
+        setError("Could not loading the resources. Try again.");
+      });
   }, []);
 
   useEffect(() => {
@@ -49,7 +57,10 @@ export default function ChartFormModal({ close, params, onChanged }: ModalConten
         setMetricIds(chart.metrics.map((m) => m.id));
         setResourceId(chart.metrics[0]?.resource_id ?? null);
       })
-      .catch((error) => console.error("Error loading chart:", error));
+      .catch((error) => {
+        console.error("Error loading chart:", error);
+        setError("Could not loading the chart. Try again.");
+      });
   }, [chartId]);
 
   useEffect(() => {
@@ -57,7 +68,10 @@ export default function ChartFormModal({ close, params, onChanged }: ModalConten
 
     getMetricDefinitions(resourceId)
       .then(setMetrics)
-      .catch((error) => console.error("Error loading metrics:", error));
+      .catch((error) => {
+        console.error("Error loading metrics:", error);
+        setError("Could not loading the metrics. Try again.");
+      });
   }, [resourceId]);
 
   const selectedMetrics = metrics.filter((m) => metricIds.includes(m.id));
@@ -94,10 +108,13 @@ export default function ChartFormModal({ close, params, onChanged }: ModalConten
       } else {
         await createChart({ dashboard_id: dashboardId, ...data });
       }
-      onChanged();
+      invalidate("charts");
       close();
     } catch (error) {
       console.error("Error adding chart:", error);
+      setError("Could not adding the chart. Try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -106,10 +123,13 @@ export default function ChartFormModal({ close, params, onChanged }: ModalConten
 
     try {
       await deleteChart(Number(chartId));
-      onChanged();
+      invalidate("charts");
       close();
     } catch (error) {
       console.error("Error deleting chart: ", error);
+      setError("Could not deleting the chart. Try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -186,17 +206,18 @@ export default function ChartFormModal({ close, params, onChanged }: ModalConten
           </div>
         ))}
 
+      {error && <p className="modal-error">{error}</p>}
+
       <div className="modal-actions">
         {isEdit && (
-          <Button title="Delete chart" className="primary danger" onClick={handleDelete} />
+          <Button variant="danger" onClick={handleDelete}>
+            Delete chart
+          </Button>
         )}
-        <Button title="Cancel" onClick={close} />
-        <Button
-          title="Save"
-          type="submit"
-          className="primary"
-          disabled={!title.trim() || metricIds.length === 0}
-        />
+        <Button onClick={close}>Cancel</Button>
+        <Button type="submit" variant="primary" disabled={saving || !title.trim()}>
+          {saving ? "Saving..." : "Save"}
+        </Button>
       </div>
     </form>
   );

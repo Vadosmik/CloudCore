@@ -23,12 +23,7 @@ import { TIME_RANGE_MS } from "../../components/charts/chartTheme";
 
 const REFRESH_INTERVAL_MS = 60_000;
 
-interface DashboardsPageProps {
-  version: number;
-  refresh: () => void;
-}
-
-export default function DashboardsPage({ version, refresh }: DashboardsPageProps) {
+export default function DashboardsPage() {
   const { id } = useParams<{ id: string }>();
   const { open } = useHashModal();
   const [notFound, setNotFound] = useState(false);

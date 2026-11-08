@@ -1,19 +1,137 @@
-* {
+/* === PRIMITIVES === */
+:root {
+  --font-heading: system-ui, -apple-system, sans-serif;
+  --font-body: system-ui, -apple-system, sans-serif;
+  --base-font-size: 16px;
+
+  /* Font size */
+  --fs-sm: 0.85rem;
+  --fs-base: 1rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: 1.75rem;
+  --fs-2xl: 2.5rem;
+
+  /* Font weights */
+  --fw-medium: 500;
+  --fw-bold: 700;
+  --fw-black: 900;
+
+  /* UI radiuses */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+
+  /* Neutrals */
+  --raw-white: #ffffff;
+  --raw-cream: #f2f1ed;
+  --raw-black: #111111;
+  --raw-dark: #1e1d1d;
+
+  /* Blues / Navy */
+  --raw-navy: #18316a;
+  --raw-blue-dark: #5e7bbf;
+  --raw-blue-light: #a3c5eb;
+
+  /* Status Primitives */
+  --raw-green: #36f44f;
+  --raw-green-dark: #1ea832;
+  --raw-amber: #f4db36;
+  --raw-amber-dark: #c9a700;
+  --raw-red: #f44336;
+  --raw-red-light: #ff6b60;
+}
+
+/* === SEMANTIC THEMES === */
+:root,
+[data-theme="light"] {
+  --color-bg: var(--raw-cream);
+  --color-surface: var(--raw-white);
+
+  --color-text: var(--raw-dark);
+  --color-text-hover: var(--raw-black);
+  --color-text-muted: var(--raw-blue-dark);
+
+  --color-primary: var(--raw-navy);
+  --color-primary-hover: var(--raw-blue-light);
+  --color-on-primary: var(--raw-white);
+
+  --color-accent: var(--raw-navy);
+  --color-border: var(--raw-blue-dark);
+
+  --color-ok: var(--raw-green-dark);
+  --color-warning: var(--raw-amber-dark);
+  --color-error: var(--raw-red);
+
+  --color-ghost-hover: rgba(30, 29, 29, 0.06);
+  --color-ghost-active: rgba(30, 29, 29, 0.12);
+  --color-danger-bg: rgba(244, 67, 54, 0.1);
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html, body, #root {
+html {
+  font-size: var(--base-font-size);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+#root {
   width: 100%;
   height: 100%;
   min-height: 100vh;
-  font-family: system-ui, -apple-system, sans-serif;
 }
 
-.app-container {
-  display: flex;
-  width: 100vw;
-  height: 100vh;
-  background-color: #ffffff;
+body {
+  font-family: var(--font-body);
+  font-weight: var(--fw-medium);
+  line-height: 1.5;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: var(--fs-xl);
+}
+h2 {
+  font-size: var(--fs-lg);
+}
+h3 {
+  font-size: var(--fs-base);
+}
+
+.app-layout--mobile h1 {
+  font-size: 1.5rem;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
 }

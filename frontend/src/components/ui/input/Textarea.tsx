@@ -2,15 +2,22 @@ import { useId, useLayoutEffect, useRef } from "react";
 import type { TextareaHTMLAttributes } from "react";
 import "./Input.css";
 
-type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
+export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   label: string;
   error?: string | null;
 };
 
-export function Textarea({ label, error, rows = 4, maxLength, value, ...textareaProps }: TextareaProps) {
+export function Textarea({
+  label,
+  error,
+  rows = 4,
+  maxLength,
+  value,
+  className = "",
+  ...textareaProps
+}: TextareaProps) {
   const id = useId();
   const currentLength = typeof value === "string" ? value.length : 0;
-
   const textbox = useRef<HTMLTextAreaElement>(null);
 
   useLayoutEffect(() => {
@@ -22,28 +29,29 @@ export function Textarea({ label, error, rows = 4, maxLength, value, ...textarea
   }, [value, rows]);
 
   return (
-    <div className={`input-field ${error ? "input-field--error" : ""}`}>
-      <label htmlFor={id} className="input-field__label">
-        {label}
-      </label>
+    <div className={`input-field ${error ? "input-field--error" : ""} ${className}`.trim()}>
+      <div className="input-field__box">
+        <label htmlFor={id} className="input-field__label">
+          {label}
+        </label>
 
-      <textarea
-        id={id}
-        ref={textbox}
-        rows={rows}
-        maxLength={maxLength}
-        value={value}
-        className="input-field__control"
-        aria-invalid={Boolean(error)}
-        {...textareaProps}
-      />
+        <textarea
+          id={id}
+          ref={textbox}
+          rows={rows}
+          maxLength={maxLength}
+          value={value}
+          className="input-field__control"
+          aria-invalid={Boolean(error)}
+          {...textareaProps}
+        />
 
-      {maxLength !== undefined && (
-        <span className="input-field__counter">
-          {currentLength}/{maxLength}
-        </span>
-      )}
-
+        {maxLength !== undefined && (
+          <span className="input-field__counter">
+            {currentLength}/{maxLength}
+          </span>
+        )}
+      </div>
       {error && <p className="input-field__error">{error}</p>}
     </div>
   );

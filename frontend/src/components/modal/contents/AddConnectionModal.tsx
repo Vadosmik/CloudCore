@@ -6,20 +6,25 @@ import type { ModalContentProps } from "../types";
 import { Input } from "../../ui/input/Input";
 import { Select } from "../../ui/input/Select";
 import Button from "../../ui/button/Button";
+import { useInvalidate } from "../../../context/RefreshContext";
 
-export default function AddConnectionModal({
-  close,
-  onChanged,
-}: ModalContentProps) {
+export default function AddConnectionModal({ close }: ModalContentProps) {
   const [name, setName] = useState("");
   const [provider, setProvider] = useState<ConnectionProvider>("AWS");
   const [accessKeyId, setAccessKeyId] = useState("");
   const [secretAccessKey, setSecretAccessKey] = useState("");
   const [region, setRegion] = useState("");
 
-  const handleSubmit = async (e: FormEvent) => {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const invalidate = useInvalidate();
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name.trim()) return;
+
+    setSaving(true);
+    setError(null);
 
     const credentials =
       provider === "AWS"
@@ -36,10 +41,13 @@ export default function AddConnectionModal({
         provider,
         credentials,
       });
-      onChanged();
+      invalidate("conections");
       close();
     } catch (error) {
       console.error("Error adding connection: ", error);
+      setError("Could not adding the connection. Try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -96,9 +104,13 @@ export default function AddConnectionModal({
         <p>GCp</p>
       )}
 
+      {error && <p className="modal-error">{error}</p>}
+
       <div className="modal-actions">
-        <Button title="Cancel" onClick={close} />
-        <Button title="Save" type="submit" className="primary" />
+        <Button onClick={close}>Cancel</Button>
+        <Button type="submit" variant="primary" disabled={saving || !name.trim()}>
+          {saving ? "Saving..." : "Save"}
+        </Button>
       </div>
     </form>
   );

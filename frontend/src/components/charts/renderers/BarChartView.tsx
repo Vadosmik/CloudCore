@@ -2,7 +2,7 @@ import ReactECharts from "echarts-for-react";
 import type { EChartsOption, BarSeriesOption } from "echarts";
 import type { Chart } from "../../../types/charts";
 import type { MetricDataPoint } from "../../../types/metrics";
-import { CHART_COLORS, formatBytes, formatMetric } from "../chartTheme";
+import { CHART_COLORS, formatBytes, formatMetric, TIME_RANGE_MS } from "../chartTheme";
 
 export default function BarChartView({
   chart,
@@ -30,7 +30,12 @@ export default function BarChartView({
     },
     legend: { show: multi, top: 0, type: "scroll" },
     tooltip: { trigger: "axis" },
-    xAxis: { type: "time", axisLabel: { hideOverlap: true } },
+    xAxis: {
+      type: "time",
+      min: Date.now() - TIME_RANGE_MS[chart.time_range],
+      max: Date.now(),
+      axisLabel: { hideOverlap: true },
+    },
     yAxis: {
       type: "value",
       min: isPercent ? 0 : undefined,

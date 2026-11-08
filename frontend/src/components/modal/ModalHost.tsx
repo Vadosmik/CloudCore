@@ -2,7 +2,11 @@ import Modal from "./Modal";
 import { useHashModal } from "./useHashModal";
 import { modalRegistry } from "./modalRegistry";
 
-export default function ModalHost({ onChanged }: { onChanged: () => void }) {
+type Props = {
+  onChanged?: () => void;
+};
+
+export default function ModalHost({ onChanged = () => {} }: Props) {
   const { current, params, close } = useHashModal();
   const entry = current ? modalRegistry[current] : undefined;
 

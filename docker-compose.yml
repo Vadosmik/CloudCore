@@ -20,19 +20,22 @@ services:
     environment:
       CORE_API_URL: http://core-service:8080
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
-      # DISCOVERY_INTERVAL: ${AWS_DISCOVERY_INTERVAL:-5}
-      # METRICS_INTERVAL: ${AWS_METRICS_INTERVAL:-5}
+      # DISCOVERY_INTERVAL: ${AWS_DISCOVERY_INTERVAL:-60}
+      # METRICS_INTERVAL: ${AWS_METRICS_INTERVAL:-60}
     depends_on:
       - core-service
     networks: [cloud-core-internal]
 
-  # gcp-collector:
-  #   build: ./collectors/gcp
-  #   container_name: gcp-collector
-  #   restart: unless-stopped
-  #   environment:
-  #     INTERNAL_API_KEY: ${INTERNAL_API_KEY}
-  #   networks: [cloud-core-internal]
+  gcp-collector:
+    build: ./collectors/gcp
+    container_name: gcp-collector
+    restart: unless-stopped
+    environment:
+      CORE_API_URL: http://core-service:8080
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+    depends_on:
+      - core-service
+    networks: [cloud-core-internal]
 
   # === cloude core service ===
   core-service:

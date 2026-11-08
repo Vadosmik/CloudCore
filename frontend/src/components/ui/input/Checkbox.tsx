@@ -2,17 +2,23 @@ import { useId } from "react";
 import type { InputHTMLAttributes } from "react";
 import "./Input.css";
 
-type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
+export type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
   label: string;
+  variant?: "default" | "chip";
 };
 
-export function Checkbox({ label, ...inputProps }: CheckboxProps) {
+export function Checkbox({
+  label,
+  variant = "default",
+  className = "",
+  ...inputProps
+}: CheckboxProps) {
   const id = useId();
 
   return (
-    <label htmlFor={id} className="chip">
-      <input id={id} type="checkbox" className="chip__control" {...inputProps} />
-      <span className="chip__label">{label}</span>
+    <label htmlFor={id} className={`checkbox checkbox--${variant} ${className}`.trim()}>
+      <input id={id} type="checkbox" className="checkbox__control" {...inputProps} />
+      <span className="checkbox__label">{label}</span>
     </label>
   );
 }

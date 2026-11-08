@@ -15,7 +15,7 @@ from schemas.dashboards import (
 router = APIRouter(prefix="/dashboards", tags=["Dashboards"])
 
 
-@router.get("/", response_model=list[DashboardListItem])
+@router.get("", response_model=list[DashboardListItem])
 async def get_dashboards(db: SessionDep) -> list[DashboardListItem]:
   query = select(Dashboard)
   dashboards = (await db.execute(query)).scalars().all()
@@ -23,7 +23,7 @@ async def get_dashboards(db: SessionDep) -> list[DashboardListItem]:
   return dashboards
 
 
-@router.post("/", response_model=DashboardRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=DashboardRead, status_code=status.HTTP_201_CREATED)
 async def create_dashboard(dashboard_in: DashboardCreate, db: SessionDep):
   query = select(Dashboard).where(Dashboard.title == dashboard_in.title)
   dashboard = (await db.execute(query)).scalar_one_or_none()

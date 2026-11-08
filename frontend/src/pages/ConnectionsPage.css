@@ -1,6 +1,29 @@
-.connection-list {
+.connection-page {
   display: flex;
   flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* === Header === */
+.connection-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.connection-page__title {
+  font-size: 1.75rem;
+  color: var(--color-text);
+  margin: 0;
+}
+
+/* === connection List === */
+.connection-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
 }
 
 .connection-item {
@@ -29,4 +52,15 @@
   border-radius: 999px;
   background: var(--hover-bg);
   color: var(--text-muted);
+}
+
+/* === Mobile Variant === */
+.app-layout--mobile {
+  .studio-page {
+    gap: 1rem;
+  }
+
+  .studio-page__title {
+    font-size: 1.5rem;
+  }
 }
